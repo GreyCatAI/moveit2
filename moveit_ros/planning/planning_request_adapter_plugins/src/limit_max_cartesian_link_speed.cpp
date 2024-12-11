@@ -40,7 +40,7 @@
 #include <moveit/trajectory_processing/limit_cartesian_speed.h>
 #include <class_loader/class_loader.hpp>
 
-namespace default_planner_request_adapters
+namespace default_planning_request_adapters
 {
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_ros.limit_max_cartesian_link_speed");
 
@@ -81,7 +81,7 @@ public:
     return result;
   }
 };
-}  // namespace default_planner_request_adapters
+}  // namespace default_planning_request_adapters
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::LimitMaxCartesianLinkSpeed,
+CLASS_LOADER_REGISTER_CLASS(default_planning_request_adapters::LimitMaxCartesianLinkSpeed,
                             planning_interface::PlanningRequestAdapter);
