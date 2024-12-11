@@ -53,7 +53,7 @@ namespace default_planning_response_adapters {
   // static
   // const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_ros.limit_max_cartesian_link_speed");
 
-  class LimitMaxCartesianLinkSpeed: public planning_interface::PlanningRequestAdapter {
+  class LimitMaxCartesianLinkSpeed: public planning_interface::PlanningResponseAdapter {
     public: LimitMaxCartesianLinkSpeed(): logger_(moveit::getLogger("moveit.ros.limit_max_cartesian_link_speed")) {}
 
     void initialize(const rclcpp::Node::SharedPtr & /*node*/ ,
