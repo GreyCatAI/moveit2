@@ -962,6 +962,15 @@ public:
   void setTrajectoryConstraints(const moveit_msgs::msg::TrajectoryConstraints& constraint);
   void clearTrajectoryConstraints();
 
+    /** \brief Limit the maximum Cartesian speed for a given link.
+      The unit of the speed is meter per second and must be greater than 0.
+      The desired speed is a maximum bound. Slower parts of the trajectory will
+      be left unchanged. If no link_name is given, the first end effector tip will be assumed. */
+  void limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name = "");
+
+  /** \brief Clear maximum Cartesian speed of the end effector. */
+  void clearMaxCartesianLinkSpeed();
+
   /**@}*/
 
 protected:

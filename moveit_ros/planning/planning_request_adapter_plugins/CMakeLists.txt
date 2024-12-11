@@ -5,7 +5,7 @@ add_library(
   moveit_default_planning_request_adapter_plugins SHARED
   src/check_for_stacked_constraints.cpp src/check_start_state_bounds.cpp
   src/check_start_state_collision.cpp src/validate_workspace_bounds.cpp
-  src/resolve_constraint_frames.cpp)
+  src/resolve_constraint_frames.cpp src/limit_max_cartesian_link_speed.cpp)
 
 target_link_libraries(moveit_default_planning_request_adapter_plugins
                       default_request_adapter_parameters)

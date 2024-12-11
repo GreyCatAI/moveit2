@@ -1,15 +1,15 @@
-add_library(
-  moveit_trajectory_processing SHARED
-  src/ruckig_traj_smoothing.cpp src/trajectory_tools.cpp
-  src/time_optimal_trajectory_generation.cpp)
-target_include_directories(
-  moveit_trajectory_processing
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include/moveit_core>)
-set_target_properties(moveit_trajectory_processing
-                      PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
-ament_target_dependencies(
-  moveit_trajectory_processing
+add_library(moveit_trajectory_processing SHARED
+  src/ruckig_traj_smoothing.cpp
+  src/trajectory_tools.cpp
+  src/time_optimal_trajectory_generation.cpp
+  src/limit_cartesian_speed.cpp
+)
+target_include_directories(moveit_trajectory_processing PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include/moveit_core>
+)
+set_target_properties(moveit_trajectory_processing PROPERTIES VERSION "${${PROJECT_NAME}_VERSION}")
+ament_target_dependencies(moveit_trajectory_processing
   rclcpp
   rmw_implementation
   urdf
@@ -45,9 +45,12 @@ if(BUILD_TESTING)
   target_link_libraries(test_ruckig_traj_smoothing moveit_trajectory_processing
                         moveit_test_utils)
 
+  ament_add_gtest(test_limit_cartesian_speed test/test_limit_cartesian_speed.cpp)
+
   ament_add_google_benchmark(robot_trajectory_benchmark
                              test/robot_trajectory_benchmark.cpp)
-  target_link_libraries(
+  target_link_libraries(test_limit_cartesian_speed
     robot_trajectory_benchmark moveit_robot_model moveit_test_utils
     moveit_robot_state moveit_robot_trajectory moveit_trajectory_processing)
+
 endif()

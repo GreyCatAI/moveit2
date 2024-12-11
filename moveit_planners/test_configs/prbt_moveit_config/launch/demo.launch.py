@@ -86,6 +86,7 @@ def generate_launch_description():
         "ompl": {
             "planning_plugins": ["ompl_interface/OMPLPlanner"],
             "request_adapters": [
+                "default_planning_request_adapters/LimitMaxCartesianLinkSpeed",
                 "default_planning_request_adapters/ResolveConstraintFrames",
                 "default_planning_request_adapters/ValidateWorkspaceBounds",
                 "default_planning_request_adapters/CheckStartStateBounds",
