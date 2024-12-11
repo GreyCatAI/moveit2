@@ -2,11 +2,11 @@
   <!-- load OMPL planning pipeline, but add the CHOMP planning adapter. -->
   <include file="$(find panda_moveit_config)/launch/ompl_planning_pipeline.launch.xml">
     <arg name="planning_adapters" value="
-       default_planning_request_adapters/AddTimeOptimalParameterization
        default_planning_request_adapters/ValidateWorkspaceBounds
        default_planning_request_adapters/CheckStartStateBounds
        default_planning_request_adapters/CheckStartStateCollision
-       default_planning_request_adapters/LimitMaxCartesianLinkSpeed
+       default_planning_response_adapters/AddTimeOptimalParameterization
+       default_planning_response_adapters/LimitMaxCartesianLinkSpeed
        chomp/OptimizerAdapter"
        />
   </include>
