@@ -49,7 +49,8 @@ pybind11_add_module(
   src/moveit/moveit_core/robot_model/joint_model_group.cpp
   src/moveit/moveit_core/robot_model/robot_model.cpp
   src/moveit/moveit_core/robot_state/robot_state.cpp
-  src/moveit/moveit_core/robot_trajectory/robot_trajectory.cpp)
+  src/moveit/moveit_core/robot_trajectory/robot_trajectory.cpp
+  src/moveit/moveit_core/trajectory_processing/trajectory_processing.cpp)
 target_link_libraries(
   core
   PRIVATE moveit_ros_planning::moveit_cpp
