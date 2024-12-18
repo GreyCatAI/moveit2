@@ -46,6 +46,7 @@
 #include "moveit_core/robot_model/robot_model.hpp"
 #include "moveit_core/robot_state/robot_state.hpp"
 #include "moveit_core/robot_trajectory/robot_trajectory.hpp"
+#include "moveit_core/trajectory_processing/trajectory_processing.hpp"
 
 PYBIND11_MODULE(core, m)
 {
@@ -78,4 +79,6 @@ PYBIND11_MODULE(core, m)
   // TODO (peterdavidfagan): complete JointModel bindings
   // JointModel (this is an abstract base class)
   // py::class_<moveit::core::JointModel>(m, "JointModel");
+
+  moveit_py::bind_trajectory_processing::initTrajectoryProcessing(m);
 }
