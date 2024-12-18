@@ -48,7 +48,7 @@ void initTrajectoryProcessing(py::module& m)
   py::module trajectory_processing = m.def_submodule("trajectory_processing");
 
   trajectory_processing.def(
-      "limit_cartesian_speed",
+      "limit_max_cartesian_speed",
       [](robot_trajectory::RobotTrajectory& trajectory, const double speed, const std::string& link_name) {
         return trajectory_processing::limitMaxCartesianLinkSpeed(trajectory, speed, link_name);
       },
