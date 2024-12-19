@@ -170,7 +170,7 @@ void initRobotTrajectory(py::module& m)
           [](robot_trajectory::RobotTrajectory& trajectory, const double speed, const std::string& link_name = "") {
             return trajectory_processing::limitMaxCartesianLinkSpeed(trajectory, speed, link_name);
           },
-          py::arg("trajectory"), py::arg("speed"), py::arg("link_name") = "",
+          py::arg("speed"), py::arg("link_name") = "",
           R"(
            Limit maximum cartesian speed of the link.
 
