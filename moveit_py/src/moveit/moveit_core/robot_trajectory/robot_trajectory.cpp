@@ -37,6 +37,7 @@
 #include "robot_trajectory.hpp"
 #include <moveit_py/moveit_py_utils/ros_msg_typecasters.hpp>
 #include <moveit/trajectory_processing/trajectory_tools.hpp>
+#include <moveit/trajectory_processing/limit_cartesian_speed.hpp>
 
 namespace moveit_py
 {
@@ -163,6 +164,21 @@ void initRobotTrajectory(py::module& m)
                overshoot_threshold (float): The maximum allowed overshoot during smoothing (default: 0.01).
            Returns:
                bool: True if the trajectory was successfully retimed, false otherwise.
+           )")
+      .def(
+          "limit_max_cartesian_speed",
+          [](robot_trajectory::RobotTrajectory& trajectory, const double speed, const std::string& link_name = "") {
+            return trajectory_processing::limitMaxCartesianLinkSpeed(trajectory, speed, link_name);
+          },
+          py::arg("trajectory"), py::arg("speed"), py::arg("link_name") = "",
+          R"(
+           Limit maximum cartesian speed of the link.
+
+           Args:
+               speed (float): Speed in cartesian space, `m/s`.
+               link_name (bool): what link the speed limit apply to, empty string means using end effector (default: '').
+           Returns:
+               bool: True if the limitation applied successfully, false otherwise.
            )")
       .def("get_robot_trajectory_msg", &moveit_py::bind_robot_trajectory::getRobotTrajectoryMsg,
            py::arg("joint_filter") = std::vector<std::string>(),
