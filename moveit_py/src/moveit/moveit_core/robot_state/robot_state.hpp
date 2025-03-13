@@ -47,6 +47,7 @@
 #include <moveit_py/moveit_py_utils/copy_ros_msg.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <moveit/robot_state/robot_state.hpp>
+#include "functional"
 
 namespace py = pybind11;
 
@@ -54,6 +55,10 @@ namespace moveit_py
 {
 namespace bind_robot_state
 {
+typedef std::function<bool(const moveit::core::RobotState* robot_state,
+                           const moveit::core::JointModelGroup* joint_group, const double* joint_group_variable_values)>
+    GroupStateValidityCallbackFn;
+
 void update(moveit::core::RobotState* self, bool force, std::string& category);
 
 Eigen::MatrixXd getFrameTransform(const moveit::core::RobotState* self, std::string& frame_id);
@@ -62,7 +67,8 @@ Eigen::MatrixXd getGlobalLinkTransform(const moveit::core::RobotState* self, std
 
 geometry_msgs::msg::Pose getPose(const moveit::core::RobotState* self, const std::string& link_name);
 
-Eigen::VectorXd copyJointGroupPositions(const moveit::core::RobotState* self, const std::string& joint_model_group_name);
+Eigen::VectorXd copyJointGroupPositions(const moveit::core::RobotState* self,
+                                        const std::string& joint_model_group_name);
 Eigen::VectorXd copyJointGroupVelocities(const moveit::core::RobotState* self,
                                          const std::string& joint_model_group_name);
 Eigen::VectorXd copyJointGroupAccelerations(const moveit::core::RobotState* self,
@@ -77,6 +83,8 @@ Eigen::MatrixXd getJacobian(const moveit::core::RobotState* self, const std::str
 
 bool setToDefaultValues(moveit::core::RobotState* self, const std::string& joint_model_group_name,
                         const std::string& state_name);
+
+Eigen::VectorXd vecFromPtr(const double* gstate);
 
 void initRobotState(py::module& m);
 }  // namespace bind_robot_state
