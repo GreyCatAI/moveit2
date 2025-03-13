@@ -35,7 +35,9 @@
 /* Author: Peter David Fagan */
 
 #include "robot_state.hpp"
+#include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 #include <moveit_py/moveit_py_utils/ros_msg_typecasters.hpp>
 #include <moveit_msgs/msg/robot_state.hpp>
 #include <moveit/robot_state/conversions.hpp>
