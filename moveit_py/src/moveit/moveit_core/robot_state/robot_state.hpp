@@ -56,7 +56,8 @@ namespace moveit_py
 namespace bind_robot_state
 {
 typedef std::function<bool(const moveit::core::RobotState* robot_state,
-                           const moveit::core::JointModelGroup* joint_group, const double* joint_group_variable_values)>
+                           const moveit::core::JointModelGroup* joint_group,
+                           const Eigen::VectorXd& joint_group_variable_values)>
     GroupStateValidityCallbackFn;
 
 void update(moveit::core::RobotState* self, bool force, std::string& category);

@@ -60,7 +60,6 @@ void update(moveit::core::RobotState* self, bool force, std::string& category)
   }
   else
   {
-    moveit_py::bind_robot_state::;
     throw std::invalid_argument("Invalid category");
   }
 }
@@ -208,10 +207,10 @@ bool setToDefaultValues(moveit::core::RobotState* self, const std::string& joint
   return self->setToDefaultValues(joint_model_group, state_name);
 }
 
-Eigen::VectorXd vecFromPtr(const double* gstate)
+Eigen::VectorXd vecFromPtr(const moveit::core::JointModelGroup* joint_group, const double* gstate)
 {
   Eigen::VectorXd values;
-  const std::vector<int>& il = group->getVariableIndexList();
+  const std::vector<int>& il = joint_group->getVariableIndexList();
   for (std::size_t i = 0; i < il.size(); ++i)
     values(i) = gstate[i];
   return values;
@@ -459,15 +458,15 @@ void initRobotState(py::module& m)
               callback_fn = [validation_callback](moveit::core::RobotState* robot_state,
                                                   const moveit::core::JointModelGroup* joint_group,
                                                   const double* joint_group_variable_values) {
-                Eigen::VectorXd v = vecFromPtr(joint_group_variable_values);
-                return validation_callback(robot_state, joint_group, v)
-              }
+                Eigen::VectorXd v = vecFromPtr(joint_group, joint_group_variable_values);
+                return validation_callback(robot_state, joint_group, v);
+              };
             }
 
             return self->setFromIK(self->getJointModelGroup(group), pose, tip, timeout, callback_fn);
           },
           py::arg("joint_model_group_name"), py::arg("geometry_pose"), py::arg("tip_name"), py::arg("timeout") = 0.0,
-          py::arg("validation_callback") = null,
+          py::arg("validation_callback") = nullptr,
           R"(
            Sets the state of the robot to the one that results from solving the inverse kinematics for the specified group.
 
