@@ -213,6 +213,7 @@ Eigen::VectorXd vecFromPtr(const moveit::core::JointModelGroup* joint_group, con
 {
   Eigen::VectorXd values;
   const std::vector<int>& il = joint_group->getVariableIndexList();
+  values.resize(il.size());
   for (std::size_t i = 0; i < il.size(); ++i)
     values(i) = gstate[i];
   return values;
