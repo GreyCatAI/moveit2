@@ -167,8 +167,7 @@ Eigen::VectorXd copyJointGroupPositions(const moveit::core::RobotState* self, co
   return values;
 }
 
-Eigen::VectorXd copyJointGroupVelocities(const moveit::core::RobotState* self,
-                                         const std::string& joint_model_group_name)
+Eigen::VectorXd copyJointGroupVelocities(const moveit::core::RobotState* self, const std::string& joint_model_group_name)
 {
   Eigen::VectorXd values;
   self->copyJointGroupVelocities(joint_model_group_name, values);
@@ -212,9 +211,9 @@ bool setToDefaultValues(moveit::core::RobotState* self, const std::string& joint
 Eigen::VectorXd vecFromPtr(const moveit::core::JointModelGroup* joint_group, const double* gstate)
 {
   Eigen::VectorXd values;
-  const std::vector<int>& il = joint_group->getVariableIndexList();
+  const std::vector<int>& index_list = joint_group->getVariableIndexList();
   values.resize(il.size());
-  for (std::size_t i = 0; i < il.size(); ++i)
+  for (std::size_t i = 0; i < index_list.size(); ++i)
     values(i) = gstate[i];
   return values;
 }
