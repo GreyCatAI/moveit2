@@ -35,7 +35,9 @@
 /* Author: Peter David Fagan */
 
 #include "robot_state.hpp"
+#include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 #include <moveit_py/moveit_py_utils/ros_msg_typecasters.hpp>
 #include <moveit_msgs/msg/robot_state.hpp>
 #include <moveit/robot_state/conversions.hpp>
@@ -206,6 +208,16 @@ bool setToDefaultValues(moveit::core::RobotState* self, const std::string& joint
   return self->setToDefaultValues(joint_model_group, state_name);
 }
 
+Eigen::VectorXd vecFromPtr(const moveit::core::JointModelGroup* joint_group, const double* gstate)
+{
+  Eigen::VectorXd values;
+  const std::vector<int>& index_list = joint_group->getVariableIndexList();
+  values.resize(il.size());
+  for (std::size_t i = 0; i < index_list.size(); ++i)
+    values(i) = gstate[i];
+  return values;
+}
+
 void initRobotState(py::module& m)
 {
   py::module robot_state = m.def_submodule("robot_state");
@@ -351,7 +363,8 @@ void initRobotState(py::module& m)
                position_values (:py:class:`numpy.ndarray`): The positions of the joints in the joint model group.
        )")
 
-      // peterdavidfagan: I am not sure if additional function names are better than having function parameters for joint setting.
+      // peterdavidfagan: I am not sure if additional function names are better than having function parameters for
+      // joint setting.
       .def("set_joint_group_active_positions",
            py::overload_cast<const std::string&, const Eigen::VectorXd&>(
                &moveit::core::RobotState::setJointGroupActivePositions),
@@ -439,9 +452,23 @@ void initRobotState(py::module& m)
       .def(
           "set_from_ik",
           [](moveit::core::RobotState* self, const std::string& group, const geometry_msgs::msg::Pose& pose,
-             const std::string& tip,
-             double timeout) { return self->setFromIK(self->getJointModelGroup(group), pose, tip, timeout); },
+             const std::string& tip, double timeout,
+             const moveit_py::bind_robot_state::GroupStateValidityCallbackFn& validation_callback) {
+            moveit::core::GroupStateValidityCallbackFn callback_fn;
+            if (validation_callback)
+            {
+              callback_fn = [validation_callback](moveit::core::RobotState* robot_state,
+                                                  const moveit::core::JointModelGroup* joint_group,
+                                                  const double* joint_group_variable_values) {
+                Eigen::VectorXd v = vecFromPtr(joint_group, joint_group_variable_values);
+                return validation_callback(robot_state, joint_group, v);
+              };
+            }
+
+            return self->setFromIK(self->getJointModelGroup(group), pose, tip, timeout, callback_fn);
+          },
           py::arg("joint_model_group_name"), py::arg("geometry_pose"), py::arg("tip_name"), py::arg("timeout") = 0.0,
+          py::arg("validation_callback") = nullptr,
           R"(
            Sets the state of the robot to the one that results from solving the inverse kinematics for the specified group.
 
