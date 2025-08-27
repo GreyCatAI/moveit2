@@ -47,6 +47,7 @@
 #include <moveit_py/moveit_py_utils/copy_ros_msg.hpp>
 #include <tf2_eigen/tf2_eigen.hpp>
 #include <moveit/robot_state/robot_state.hpp>
+#include "functional"
 
 namespace py = pybind11;
 
@@ -54,6 +55,12 @@ namespace moveit_py
 {
 namespace bind_robot_state
 {
+typedef std::function<bool(const moveit::core::RobotState* robot_state, const moveit::core::JointModelGroup* joint_group,
+                           const Eigen::VectorXd& joint_group_variable_values)>
+    GroupStateValidityCallbackFn;
+
+Eigen::VectorXd vecFromPtr(const double* gstate);
+
 void update(moveit::core::RobotState* self, bool force, std::string& category);
 
 Eigen::MatrixXd getFrameTransform(const moveit::core::RobotState* self, std::string& frame_id);
