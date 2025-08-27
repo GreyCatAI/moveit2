@@ -1418,6 +1418,7 @@ void MoveGroupInterface::setMaxAccelerationScalingFactor(double max_acceleration
 double MoveGroupInterface::getMaxAccelerationScalingFactor() const
 {
   return impl_->getMaxAccelerationScalingFactor();
+}
 
 void MoveGroupInterface::limitMaxCartesianLinkSpeed(const double max_speed, const std::string& link_name)
 {
