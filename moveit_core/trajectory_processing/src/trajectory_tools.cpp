@@ -106,6 +106,7 @@ trajectory_msgs::msg::JointTrajectory createTrajectoryMessage(const std::vector<
     trajectory_msg.points.push_back(std::move(point));
   }
   return trajectory_msg;
+}
 
 // Takes the time differences, and updates the timestamps, velocities and accelerations
 // in the trajectory.
