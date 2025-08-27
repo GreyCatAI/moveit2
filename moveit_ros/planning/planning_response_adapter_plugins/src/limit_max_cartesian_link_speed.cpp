@@ -36,18 +36,24 @@
 
 /* Authors: Benjamin Scholz, Thies Oelerich, based off add_time_parameterization.cpp by Ioan Sucan */
 
-#include <moveit/planning_interface/planning_request_adapter.h>
+#include <moveit/planning_interface/planning_response_adapter.hpp>
 #include <moveit/trajectory_processing/limit_cartesian_speed.h>
 #include <class_loader/class_loader.hpp>
+#include <moveit/utils/logger.hpp>
+#include <default_response_adapter_parameters.hpp>
 
-namespace default_planner_request_adapters
+namespace default_planning_response_adapters
 {
-static const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_ros.limit_max_cartesian_link_speed");
 
-class LimitMaxCartesianLinkSpeed : public planning_interface::PlanningRequestAdapter
+using namespace trajectory_processing;
+
+// static
+// const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_ros.limit_max_cartesian_link_speed");
+
+class LimitMaxCartesianLinkSpeed : public planning_interface::PlanningResponseAdapter
 {
 public:
-  LimitMaxCartesianLinkSpeed() : planning_interface::PlanningRequestAdapter()
+  LimitMaxCartesianLinkSpeed() : logger_(moveit::getLogger("moveit.ros.limit_max_cartesian_link_speed"))
   {
   }
 
@@ -55,33 +61,46 @@ public:
   {
   }
 
-  std::string getDescription() const override
+  [[nodiscard]] std::string getDescription() const override
   {
-    return "Limiting Max Cartesian Speed";
+    return std::string("Limiting Max Cartesian Speed");
   }
 
-  bool adaptAndPlan(const PlannerFn& planner, const planning_scene::PlanningSceneConstPtr& planning_scene,
-                    const planning_interface::MotionPlanRequest& req, planning_interface::MotionPlanResponse& res,
-                    std::vector<std::size_t>& /*added_path_index*/) const override
+  void adapt(const planning_scene::PlanningSceneConstPtr& /*planning_scene*/,
+             const planning_interface::MotionPlanRequest& req,
+             planning_interface::MotionPlanResponse& res) const override
   {
-    bool result = planner(planning_scene, req, res);
-    if (result && res.trajectory)
+    RCLCPP_DEBUG(logger_, " Running '%s'", getDescription().c_str());
+    if (!res.trajectory)
     {
-      if (req.max_cartesian_speed <= 0.0)
-        return result;
-      RCLCPP_DEBUG(LOGGER, "'%s' below '%f' [m/s] for link '%s'", getDescription().c_str(), req.max_cartesian_speed,
-                   req.cartesian_speed_limited_link.c_str());
-      if (!trajectory_processing::limitMaxCartesianLinkSpeed(*res.trajectory, req.max_cartesian_speed,
-                                                             req.cartesian_speed_limited_link))
-      {
-        RCLCPP_ERROR(LOGGER, "Limiting Cartesian speed for the solution path failed.");
-        result = false;
-      }
+      RCLCPP_ERROR(logger_, "Cannot apply response adapter '%s' because MotionPlanResponse does not contain a path.",
+                   getDescription().c_str());
+      res.error_code = moveit::core::MoveItErrorCode::INVALID_MOTION_PLAN;
+      return;
     }
-    return result;
-  }
-};
-}  // namespace default_planner_request_adapters
 
-CLASS_LOADER_REGISTER_CLASS(default_planner_request_adapters::LimitMaxCartesianLinkSpeed,
-                            planning_interface::PlanningRequestAdapter);
+    if (req.max_cartesian_speed <= 0.0)
+      return;
+
+    RCLCPP_DEBUG(logger_, "'%s' below '%f' [m/s] for link '%s'", getDescription().c_str(), req.max_cartesian_speed,
+                 req.cartesian_speed_limited_link.c_str());
+
+    if (!trajectory_processing::limitMaxCartesianLinkSpeed(*res.trajectory, req.max_cartesian_speed,
+                                                           req.cartesian_speed_limited_link))
+    {
+      res.error_code = moveit::core::MoveItErrorCode::SUCCESS;
+    }
+    else
+    {
+      RCLCPP_ERROR(logger_, "Limiting Cartesian speed for the solution path failed.");
+      res.error_code = moveit::core::MoveItErrorCode::FAILURE;
+    }
+  }
+
+protected:
+  rclcpp::Logger logger_;
+};
+}  // namespace default_planning_response_adapters
+
+CLASS_LOADER_REGISTER_CLASS(default_planning_response_adapters::LimitMaxCartesianLinkSpeed,
+                            planning_interface::PlanningResponseAdapter);
