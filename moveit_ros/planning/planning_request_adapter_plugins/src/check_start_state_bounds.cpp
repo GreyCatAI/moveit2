@@ -53,7 +53,7 @@
 #include <rclcpp/parameter_value.hpp>
 #include <moveit/utils/logger.hpp>
 
-#include <default_request_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_request_adapter_parameters.hpp>
 
 namespace default_planning_request_adapters
 {
@@ -65,6 +65,8 @@ public:
   CheckStartStateBounds() : logger_(moveit::getLogger("moveit.ros.check_start_state_bounds"))
   {
   }
+
+  ~CheckStartStateBounds() override = default;
 
   void initialize(const rclcpp::Node::SharedPtr& node, const std::string& parameter_namespace) override
   {

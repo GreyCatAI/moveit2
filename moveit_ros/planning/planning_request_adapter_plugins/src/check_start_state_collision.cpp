@@ -45,7 +45,7 @@
 #include <rclcpp/parameter_value.hpp>
 #include <moveit/utils/logger.hpp>
 
-#include <default_request_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_request_adapter_parameters.hpp>
 
 namespace default_planning_request_adapters
 {
@@ -57,6 +57,8 @@ public:
   CheckStartStateCollision() : logger_(moveit::getLogger("moveit.ros.validate_start_state"))
   {
   }
+
+  ~CheckStartStateCollision() override = default;
 
   [[nodiscard]] std::string getDescription() const override
   {

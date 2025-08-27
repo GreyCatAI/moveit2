@@ -38,8 +38,17 @@
 #include <moveit/pointcloud_octomap_updater/pointcloud_octomap_updater.hpp>
 #include <moveit/occupancy_map_monitor/occupancy_map_monitor.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+// TODO: Remove conditional includes when released to all active distros.
+#if __has_include(<tf2/LinearMath/Vector3.hpp>)
+#include <tf2/LinearMath/Vector3.hpp>
+#else
 #include <tf2/LinearMath/Vector3.h>
+#endif
+#if __has_include(<tf2/LinearMath/Transform.hpp>)
+#include <tf2/LinearMath/Transform.hpp>
+#else
 #include <tf2/LinearMath/Transform.h>
+#endif
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <tf2_ros/create_timer_interface.h>
 #include <tf2_ros/create_timer_ros.h>
@@ -65,15 +74,38 @@ PointCloudOctomapUpdater::PointCloudOctomapUpdater()
 
 bool PointCloudOctomapUpdater::setParams(const std::string& name_space)
 {
+  auto check_required = [this, &name_space](const std::string& key, auto& target,
+                                            std::vector<std::string>& missing_keys) {
+    if (!this->node_->get_parameter(name_space + "." + key, target))
+    {
+      missing_keys.push_back(key);
+    }
+  };
   // This parameter is optional
   node_->get_parameter_or(name_space + ".ns", ns_, std::string());
-  return node_->get_parameter(name_space + ".point_cloud_topic", point_cloud_topic_) &&
-         node_->get_parameter(name_space + ".max_range", max_range_) &&
-         node_->get_parameter(name_space + ".padding_offset", padding_) &&
-         node_->get_parameter(name_space + ".padding_scale", scale_) &&
-         node_->get_parameter(name_space + ".point_subsample", point_subsample_) &&
-         node_->get_parameter(name_space + ".max_update_rate", max_update_rate_) &&
-         node_->get_parameter(name_space + ".filtered_cloud_topic", filtered_cloud_topic_);
+
+  std::vector<std::string> missing_keys;
+
+  check_required("point_cloud_topic", point_cloud_topic_, missing_keys);
+  check_required("max_range", max_range_, missing_keys);
+  check_required("padding_offset", padding_, missing_keys);
+  check_required("padding_scale", scale_, missing_keys);
+  check_required("point_subsample", point_subsample_, missing_keys);
+  check_required("max_update_rate", max_update_rate_, missing_keys);
+  check_required("filtered_cloud_topic", filtered_cloud_topic_, missing_keys);
+
+  if (missing_keys.empty())
+  {
+    return true;
+  }
+  std::ostringstream oss;
+  for (const auto& name : missing_keys)
+  {
+    oss << ", "
+        << "'" << name << "'";
+  }
+  RCLCPP_ERROR(node_->get_logger(), "Missing parameters under '%s': %s", name_space.c_str(), oss.str().c_str());
+  return false;
 }
 
 bool PointCloudOctomapUpdater::initialize(const rclcpp::Node::SharedPtr& node)
@@ -105,13 +137,18 @@ void PointCloudOctomapUpdater::start()
 
   if (point_cloud_subscriber_)
     return;
+
+  rclcpp::SubscriptionOptions options;
+  options.callback_group = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
   /* subscribe to point cloud topic using tf filter*/
-  point_cloud_subscriber_ = new message_filters::Subscriber<sensor_msgs::msg::PointCloud2>(node_, point_cloud_topic_,
+  auto qos_profile =
 #if RCLCPP_VERSION_GTE(28, 3, 0)
-                                                                                           rclcpp::SensorDataQoS());
+      rclcpp::SensorDataQoS();
 #else
-                                                                                           rmw_qos_profile_sensor_data);
+      rmw_qos_profile_sensor_data;
 #endif
+  point_cloud_subscriber_ =
+      new message_filters::Subscriber<sensor_msgs::msg::PointCloud2>(node_, point_cloud_topic_, qos_profile, options);
   if (tf_listener_ && tf_buffer_ && !monitor_->getMapFrame().empty())
   {
     point_cloud_filter_ = new tf2_ros::MessageFilter<sensor_msgs::msg::PointCloud2>(
@@ -324,6 +361,7 @@ void PointCloudOctomapUpdater::cloudMsgCallback(const sensor_msgs::msg::PointClo
     /* compute the free cells along each ray that ends at a clipped cell */
     for (const octomap::OcTreeKey& clip_cell : clip_cells)
     {
+      free_cells.insert(clip_cell);
       if (tree_->computeRayKeys(sensor_origin, tree_->keyToCoord(clip_cell), key_ray_))
         free_cells.insert(key_ray_.begin(), key_ray_.end());
     }

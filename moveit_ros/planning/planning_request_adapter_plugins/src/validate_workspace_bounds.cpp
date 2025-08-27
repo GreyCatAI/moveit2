@@ -44,7 +44,7 @@
 #include <rclcpp/node.hpp>
 #include <moveit/utils/logger.hpp>
 
-#include <default_request_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_request_adapter_parameters.hpp>
 
 namespace default_planning_request_adapters
 {
@@ -56,6 +56,8 @@ public:
   ValidateWorkspaceBounds() : logger_(moveit::getLogger("moveit.ros.validate_workspace_bounds"))
   {
   }
+
+  ~ValidateWorkspaceBounds() override = default;
 
   void initialize(const rclcpp::Node::SharedPtr& node, const std::string& parameter_namespace) override
   {

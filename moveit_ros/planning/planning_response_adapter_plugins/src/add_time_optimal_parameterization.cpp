@@ -39,7 +39,7 @@
 #include <class_loader/class_loader.hpp>
 #include <moveit/utils/logger.hpp>
 
-#include <default_response_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_response_adapter_parameters.hpp>
 
 namespace default_planning_response_adapters
 {
@@ -52,6 +52,8 @@ public:
   AddTimeOptimalParameterization() : logger_(moveit::getLogger("moveit.ros.add_time_optimal_parameterization"))
   {
   }
+
+  ~AddTimeOptimalParameterization() override = default;
 
   void initialize(const rclcpp::Node::SharedPtr& node, const std::string& parameter_namespace) override
   {

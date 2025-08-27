@@ -43,7 +43,7 @@
 #include <rclcpp/node.hpp>
 #include <moveit/utils/logger.hpp>
 
-#include <default_request_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_request_adapter_parameters.hpp>
 
 namespace default_planning_request_adapters
 {
@@ -55,6 +55,8 @@ public:
   CheckForStackedConstraints() : logger_(moveit::getLogger("moveit.ros.check_for_stacked_constraints"))
   {
   }
+
+  ~CheckForStackedConstraints() override = default;
 
   [[nodiscard]] std::string getDescription() const override
   {

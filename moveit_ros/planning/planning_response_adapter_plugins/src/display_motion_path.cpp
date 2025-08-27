@@ -42,7 +42,7 @@
 #include <moveit/utils/logger.hpp>
 #include <moveit_msgs/msg/display_trajectory.hpp>
 
-#include <default_response_adapter_parameters.hpp>
+#include <moveit_ros_planning/default_response_adapter_parameters.hpp>
 
 namespace default_planning_response_adapters
 {
@@ -57,6 +57,8 @@ public:
   DisplayMotionPath() : logger_(moveit::getLogger("moveit.ros.display_motion_path"))
   {
   }
+
+  ~DisplayMotionPath() override = default;
 
   void initialize(const rclcpp::Node::SharedPtr& node, const std::string& parameter_namespace) override
   {

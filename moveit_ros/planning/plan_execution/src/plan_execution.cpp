@@ -83,7 +83,7 @@ plan_execution::PlanExecution::PlanExecution(
   : node_(node)
   , planning_scene_monitor_(planning_scene_monitor)
   , trajectory_execution_manager_(trajectory_execution)
-  , logger_(moveit::getLogger("moveit.ros.add_time_optimal_parameterization"))
+  , logger_(moveit::getLogger("moveit.ros.plan_execution"))
 {
   if (!trajectory_execution_manager_)
   {
@@ -283,35 +283,67 @@ bool plan_execution::PlanExecution::isRemainingPathValid(const ExecutableMotionP
     collision_detection::CollisionRequest req;
     req.group_name = t.getGroupName();
     req.pad_environment_collisions = false;
+    moveit::core::RobotState start_state = plan.planning_scene->getCurrentState();
+    std::map<std::string, const moveit::core::AttachedBody*> current_attached_objects, waypoint_attached_objects;
+    start_state.getAttachedBodies(current_attached_objects);
+    if (plan_components_attached_objects_.size() > static_cast<size_t>(path_segment.first))
+      waypoint_attached_objects = plan_components_attached_objects_[path_segment.first];
+    moveit::core::RobotState waypoint_state(start_state);
     for (std::size_t i = std::max(path_segment.second - 1, 0); i < wpc; ++i)
     {
       collision_detection::CollisionResult res;
+      waypoint_attached_objects.clear();  // clear out the last waypoints attached objects
+      waypoint_state = t.getWayPoint(i);
+      if (plan_components_attached_objects_[path_segment.first].empty())
+      {
+        waypoint_state.getAttachedBodies(waypoint_attached_objects);
+      }
+
+      // If sample state has attached objects that are not in the current state, remove them from the sample state
+      for (const auto& [name, object] : waypoint_attached_objects)
+      {
+        if (current_attached_objects.find(name) == current_attached_objects.end())
+        {
+          RCLCPP_DEBUG(logger_, "Attached object '%s' is not in the current scene. Removing it.", name.c_str());
+          waypoint_state.clearAttachedBody(name);
+        }
+      }
+
+      // If current state has attached objects that are not in the sample state, add them to the sample state
+      for (const auto& [name, object] : current_attached_objects)
+      {
+        if (waypoint_attached_objects.find(name) == waypoint_attached_objects.end())
+        {
+          RCLCPP_DEBUG(logger_, "Attached object '%s' is not in the robot state. Adding it.", name.c_str());
+          waypoint_state.attachBody(std::make_unique<moveit::core::AttachedBody>(*object));
+        }
+      }
+
       if (acm)
       {
-        plan.planning_scene->checkCollision(req, res, t.getWayPoint(i), *acm);
+        plan.planning_scene->checkCollision(req, res, waypoint_state, *acm);
       }
       else
       {
-        plan.planning_scene->checkCollision(req, res, t.getWayPoint(i));
+        plan.planning_scene->checkCollision(req, res, waypoint_state);
       }
 
-      if (res.collision || !plan.planning_scene->isStateFeasible(t.getWayPoint(i), false))
+      if (res.collision || !plan.planning_scene->isStateFeasible(waypoint_state, false))
       {
-        // Dave's debacle
-        RCLCPP_INFO(logger_, "Trajectory component '%s' is invalid",
-                    plan.plan_components[path_segment.first].description.c_str());
+        RCLCPP_INFO(logger_, "Trajectory component '%s' is invalid for waypoint %ld out of %ld",
+                    plan.plan_components[path_segment.first].description.c_str(), i, wpc);
 
         // call the same functions again, in verbose mode, to show what issues have been detected
-        plan.planning_scene->isStateFeasible(t.getWayPoint(i), true);
+        plan.planning_scene->isStateFeasible(waypoint_state, true);
         req.verbose = true;
         res.clear();
         if (acm)
         {
-          plan.planning_scene->checkCollision(req, res, t.getWayPoint(i), *acm);
+          plan.planning_scene->checkCollision(req, res, waypoint_state, *acm);
         }
         else
         {
-          plan.planning_scene->checkCollision(req, res, t.getWayPoint(i));
+          plan.planning_scene->checkCollision(req, res, waypoint_state);
         }
         return false;
       }
@@ -402,7 +434,6 @@ moveit_msgs::msg::MoveItErrorCodes plan_execution::PlanExecution::executeAndMoni
     plan.plan_components[component_idx].trajectory->getRobotTrajectoryMsg(msg);
     if (!trajectory_execution_manager_->push(msg, plan.plan_components[component_idx].controller_name))
     {
-      trajectory_execution_manager_->clear();
       RCLCPP_ERROR(logger_, "Apparently trajectory initialization failed");
       execution_complete_ = true;
       result.val = moveit_msgs::msg::MoveItErrorCodes::CONTROL_FAILED;
@@ -431,6 +462,33 @@ moveit_msgs::msg::MoveItErrorCodes plan_execution::PlanExecution::executeAndMoni
   rclcpp::WallRate r(100);
   path_became_invalid_ = false;
   bool preempt_requested = false;
+
+  // Check that attached objects remain consistent throughout the trajectory and store them.
+  // This avoids querying the scene for attached objects at each waypoint whenever possible.
+  // If a change in attached objects is detected, they will be queried at each waypoint.
+  plan_components_attached_objects_.clear();
+  plan_components_attached_objects_.reserve(plan.plan_components.size());
+  for (const auto& component : plan.plan_components)
+  {
+    const auto& trajectory = component.trajectory;
+    std::map<std::string, const moveit::core::AttachedBody*> trajectory_attached_objects;
+    if (trajectory && trajectory->getWayPointCount() > 0)
+    {
+      std::map<std::string, const moveit::core::AttachedBody*> attached_objects;
+      trajectory->getWayPoint(0).getAttachedBodies(trajectory_attached_objects);
+      for (std::size_t i = 1; i < trajectory->getWayPointCount(); ++i)
+      {
+        trajectory->getWayPoint(i).getAttachedBodies(attached_objects);
+        if (attached_objects != trajectory_attached_objects)
+        {
+          trajectory_attached_objects.clear();
+          break;
+        }
+      }
+    }
+    if (!trajectory_attached_objects.empty())
+      plan_components_attached_objects_.push_back(trajectory_attached_objects);
+  }
 
   while (rclcpp::ok() && !execution_complete_ && !path_became_invalid_)
   {
