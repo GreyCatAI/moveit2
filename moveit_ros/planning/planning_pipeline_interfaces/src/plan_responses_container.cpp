@@ -46,13 +46,27 @@ PlanResponsesContainer::PlanResponsesContainer(const size_t expected_size)
   solutions_.reserve(expected_size);
 }
 
-void PlanResponsesContainer::pushBack(const ::planning_interface::MotionPlanResponse& plan_solution)
+void PlanResponsesContainer::pushBack(const MotionPlanRequestAndResponse& plan_solution)
 {
   std::lock_guard<std::mutex> lock_guard(solutions_mutex_);
   solutions_.push_back(plan_solution);
 }
 
-const std::vector<::planning_interface::MotionPlanResponse>& PlanResponsesContainer::getSolutions() const
+const std::vector<::planning_interface::MotionPlanResponse> PlanResponsesContainer::getSolutions() const
+{
+  // Otherwise, just return the unordered list of solutions
+  std::vector<::planning_interface::MotionPlanResponse> output;
+  output.reserve(solutions_.size());  // 预分配空间以提高效率
+
+  for (const auto& tuple : solutions_)
+  {
+    // 提取元组的第二个元素（索引1）
+    output.push_back(std::get<1>(tuple));
+  }
+  return output;
+}
+
+const std::vector<MotionPlanRequestAndResponse>& PlanResponsesContainer::getRequestAndSolutions() const
 {
   return solutions_;
 }

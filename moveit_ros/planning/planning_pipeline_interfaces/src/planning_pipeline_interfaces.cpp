@@ -38,6 +38,7 @@
 #include <moveit/utils/logger.hpp>
 
 #include <thread>
+#include <tuple>
 
 namespace moveit
 {
@@ -116,7 +117,7 @@ const std::vector<::planning_interface::MotionPlanResponse> planWithParallelPipe
         plan_solution.error_code = moveit::core::MoveItErrorCode::FAILURE;
       }
       plan_solution.planner_id = request.planner_id;
-      plan_responses_container.pushBack(plan_solution);
+      plan_responses_container.pushBack(std::make_tuple(request, plan_solution));
 
       if (stopping_criterion_callback != nullptr)
       {
@@ -160,11 +161,10 @@ const std::vector<::planning_interface::MotionPlanResponse> planWithParallelPipe
   {
     std::vector<::planning_interface::MotionPlanResponse> solutions;
     solutions.reserve(1);
-    solutions.push_back(solution_selection_function(plan_responses_container.getSolutions()));
+    solutions.push_back(solution_selection_function(plan_responses_container.getRequestAndSolutions()));
     return solutions;
   }
 
-  // Otherwise, just return the unordered list of solutions
   return plan_responses_container.getSolutions();
 }
 

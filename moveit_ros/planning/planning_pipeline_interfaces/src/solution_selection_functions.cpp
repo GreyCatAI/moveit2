@@ -35,14 +35,21 @@
 /* Author: Sebastian Jahr */
 
 #include <moveit/planning_pipeline_interfaces/solution_selection_functions.hpp>
+#include <vector>
+#include "moveit/planning_pipeline_interfaces/plan_responses_container.hpp"
 
 namespace moveit
 {
 namespace planning_pipeline_interfaces
 {
-::planning_interface::MotionPlanResponse
-getShortestSolution(const std::vector<::planning_interface::MotionPlanResponse>& solutions)
+::planning_interface::MotionPlanResponse getShortestSolution(const std::vector<MotionPlanRequestAndResponse>& results)
 {
+  std::vector<::planning_interface::MotionPlanResponse> solutions;
+  solutions.reserve(results.size());
+  for (const auto& tuple : results)
+  {
+    solutions.push_back(std::get<1>(tuple));
+  }
   // Find trajectory with minimal path
   const auto shortest_trajectory = std::min_element(solutions.begin(), solutions.end(),
                                                     [](const ::planning_interface::MotionPlanResponse& solution_a,
