@@ -47,8 +47,7 @@ namespace planning_pipeline_interfaces
  *  \param [in] solutions Vector of solutions to chose the shortest one from
  *  \return Shortest solution, trajectory of the returned MotionPlanResponse is a nullptr if no solution is found!
  */
-::planning_interface::MotionPlanResponse
-getShortestSolution(const std::vector<::planning_interface::MotionPlanResponse>& solutions);
+::planning_interface::MotionPlanResponse getShortestSolution(const std::vector<MotionPlanRequestAndResponse>& solutions);
 
 }  // namespace planning_pipeline_interfaces
 }  // namespace moveit
