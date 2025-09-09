@@ -60,8 +60,7 @@ typedef std::function<bool(const PlanResponsesContainer& plan_responses_containe
  * \param [in] solutions Motion plan responses to choose from
  * \return Selected motion plan response
  */
-typedef std::function<::planning_interface::MotionPlanResponse(
-    const std::vector<::planning_interface::MotionPlanResponse>& solutions)>
+typedef std::function<::planning_interface::MotionPlanResponse(const std::vector<MotionPlanRequestAndResponse>& solutions)>
     SolutionSelectionFunction;
 
 /** \brief Function to calculate the MotionPlanResponse for a given MotionPlanRequest and a PlanningScene

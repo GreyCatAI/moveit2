@@ -44,6 +44,10 @@ namespace moveit
 {
 namespace planning_pipeline_interfaces
 {
+
+typedef std::tuple<::planning_interface::MotionPlanRequest, ::planning_interface::MotionPlanResponse>
+    MotionPlanRequestAndResponse;
+
 MOVEIT_CLASS_FORWARD(PlanResponsesContainer);  // Defines PlanningComponentPtr, ConstPtr, WeakPtr... etc
 /** \brief A container to thread-safely store multiple MotionPlanResponses */
 class PlanResponsesContainer
@@ -59,15 +63,20 @@ public:
    * This way, it is possible to create a sorted container e.g. according to a user specified criteria
    * \param [in] plan_solution MotionPlanResponse to push back into the vector
    */
-  void pushBack(const ::planning_interface::MotionPlanResponse& plan_solution);
+  void pushBack(const MotionPlanRequestAndResponse& plan_solution);
 
   /** \brief Get solutions
    * \return Read-only access to the responses vector
    */
   const std::vector<::planning_interface::MotionPlanResponse>& getSolutions() const;
 
+  /** \brief Get request and solutions
+   * \return Read-only access to the responses vector
+   */
+  const std::vector<MotionPlanRequestAndResponse>& getRequestAndSolutions() const;
+
 private:
-  std::vector<::planning_interface::MotionPlanResponse> solutions_;
+  std::vector<MotionPlanRequestAndResponse> solutions_;
   std::mutex solutions_mutex_;
 };
 }  // namespace planning_pipeline_interfaces
