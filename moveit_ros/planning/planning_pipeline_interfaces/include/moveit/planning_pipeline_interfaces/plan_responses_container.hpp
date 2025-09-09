@@ -68,7 +68,7 @@ public:
   /** \brief Get solutions
    * \return Read-only access to the responses vector
    */
-  const std::vector<::planning_interface::MotionPlanResponse> getSolutions() const;
+  const std::vector<::planning_interface::MotionPlanResponse>& getSolutions() const;
 
   /** \brief Get request and solutions
    * \return Read-only access to the responses vector
