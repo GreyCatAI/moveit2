@@ -112,6 +112,7 @@ void initPlanningSceneMonitor(py::module& m)
                     )")
 
       .def("update_frame_transforms", &planning_scene_monitor::PlanningSceneMonitor::updateFrameTransforms,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Update the transforms for the frames that are not part of the kinematic model using tf.
 
@@ -140,7 +141,7 @@ void initPlanningSceneMonitor(py::module& m)
 	       Stops the state monitor.
 	   )")
       .def("request_planning_scene_state", &planning_scene_monitor::PlanningSceneMonitor::requestPlanningSceneState,
-           py::arg("service_name"),
+           py::arg("service_name"), py::call_guard<py::gil_scoped_release>(),
            R"(
 	       Request the planning scene.
 
@@ -149,16 +150,19 @@ void initPlanningSceneMonitor(py::module& m)
 	   )")
 
       .def("wait_for_current_robot_state", &planning_scene_monitor::PlanningSceneMonitor::waitForCurrentRobotState,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
 	   Waits for the current robot state to be received.
 	   )")
 
       .def("clear_octomap", &planning_scene_monitor::PlanningSceneMonitor::clearOctomap,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Clears the octomap.
            )")
       .def("process_collision_object", &moveit_py::bind_planning_scene_monitor::processCollisionObject,
            py::arg("collision_object_msg"), py::arg("color_msg") = nullptr,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Apply a collision object to the planning scene.
 
@@ -168,6 +172,7 @@ void initPlanningSceneMonitor(py::module& m)
       .def("process_attached_collision_object",
            &moveit_py::bind_planning_scene_monitor::processAttachedCollisionObjectMsg,
            py::arg("attached_collision_object_msg"),
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Apply an attached collision object msg to the planning scene.
 
@@ -176,7 +181,7 @@ void initPlanningSceneMonitor(py::module& m)
            )")
 
       .def("new_planning_scene_message", &planning_scene_monitor::PlanningSceneMonitor::newPlanningSceneMessage,
-           py::arg("scene"),
+           py::arg("scene"), py::call_guard<py::gil_scoped_release>(),
            R"(
            Called to update the planning scene with a new message.
 
@@ -185,11 +190,13 @@ void initPlanningSceneMonitor(py::module& m)
            )")
 
       .def("read_only", &moveit_py::bind_planning_scene_monitor::readOnly,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Returns a read-only context manager for the planning scene.
            )")
 
       .def("read_write", &moveit_py::bind_planning_scene_monitor::readWrite,
+           py::call_guard<py::gil_scoped_release>(),
            R"(
            Returns a read-write context manager for the planning scene.
            )");
