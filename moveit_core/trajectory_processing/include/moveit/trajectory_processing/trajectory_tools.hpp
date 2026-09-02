@@ -87,4 +87,6 @@ bool applyRuckigSmoothing(robot_trajectory::RobotTrajectory& trajectory, double 
 [[nodiscard]] trajectory_msgs::msg::JointTrajectory
 createTrajectoryMessage(const std::vector<std::string>& joint_names,
                         const trajectory_processing::Trajectory& trajectory, const int sampling_rate);
+
+void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory, const std::vector<double>& time_diff);
 }  // namespace trajectory_processing
